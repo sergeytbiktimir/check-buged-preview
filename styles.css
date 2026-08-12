@@ -248,6 +248,16 @@ input, select { font-family: inherit; }
 .page-title { font-size: 21px; font-weight: 700; letter-spacing: -0.02em; }
 .page-sub { font-size: 13px; color: var(--ink-3); margin-top: 1px; }
 
+/* Кнопка возврата (история навигации): «‹ [предыдущий экран]» */
+.back-btn {
+  display: inline-flex; align-items: center; gap: 3px;
+  border: none; background: transparent; color: var(--brand);
+  font-weight: 600; font-size: 14px; padding: 6px 8px 6px 0;
+  border-radius: var(--r-md); max-width: 46%;
+}
+.back-btn:hover { color: var(--brand-600); }
+.back-btn .back-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 .content {
   padding: 28px 32px 64px;
   max-width: var(--maxw);
@@ -464,25 +474,85 @@ input, select { font-family: inherit; }
 
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; }
+  /* Страховка: гасим любое случайное горизонтальное переполнение на уровне
+     каркаса. overflow-x:clip не создаёт скролл-контейнер, поэтому sticky-топбар
+     и fixed-навигация продолжают работать, а position:fixed модалки не режутся. */
+  .app { overflow-x: clip; }
+
   .sidebar {
     position: fixed; bottom: 0; top: auto; left: 0; right: 0;
     height: auto; width: 100%; flex-direction: row;
     border-right: none; border-top: 1px solid var(--line);
-    padding: 8px; gap: 2px; overflow-x: auto;
+    padding: 6px 10px; gap: 6px;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+    overflow-x: auto; overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    /* Подсказка прокрутки: затухание только на последних ~24px правого края. */
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
   }
+  .sidebar::-webkit-scrollbar { display: none; }
   .brand-mark, .sidebar-foot { display: none; }
-  .nav-item { flex-direction: column; gap: 3px; font-size: 10.5px; padding: 6px 10px; white-space: nowrap; }
-  .nav-item span.nav-label { font-size: 10.5px; }
+  .nav-item {
+    flex: 0 0 auto;
+    width: 64px; min-width: 64px; max-width: 64px;
+    flex-direction: column; gap: 4px; font-size: 10.5px;
+    padding: 8px 6px; min-height: 52px; justify-content: center;
+    scroll-snap-align: start;
+  }
+  .nav-item .nav-label {
+    max-width: 100%;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 10.5px;
+  }
+  .nav-item svg { width: 21px; height: 21px; }
   .nav-badge { position: absolute; top: 2px; right: 8px; }
-  .main { padding-bottom: 64px; }
-  .topbar { padding: 12px 16px; flex-wrap: wrap; }
-  .content { padding: 18px 16px 88px; }
-  .grid[style*="repeat(4"], .grid[style*="repeat(3"], .grid[style*="repeat(2"] { grid-template-columns: 1fr 1fr !important; }
+
+  .main { padding-bottom: 0; }
+  .topbar { padding: 12px 16px; flex-wrap: wrap; gap: 10px 14px; }
+  .content { padding: 18px 16px calc(80px + env(safe-area-inset-bottom)); }
+  .month-pick { margin-left: auto; }
+
+  /* Анти-blowout: grid-элементы обязаны сжиматься до контейнера, а не до своего
+     min-content. Без этого один широкий ребёнок (нераскрываемое число, длинная
+     строка) распирает всю колонку и уводит документ шире экрана — из-за чего
+     уезжали модалки и «плавали» sticky-панели. Это корневое лечение. */
+  .content .grid, .content .grid > *,
+  .sheet .grid, .sheet .grid > * { min-width: 0; }
+
+  /* Надёжный коллапс любых явно-колоночных сеток → 2 колонки на планшете.
+     React рендерит inline gridTemplateColumns как атрибут grid-template-columns,
+     поэтому один селектор ловит их все (кроме auto-fill/fit — те уже адаптивны). */
+  .content [style*="grid-template-columns"]:not([style*="auto-fill"]):not([style*="auto-fit"]),
+  .sheet   [style*="grid-template-columns"]:not([style*="auto-fill"]):not([style*="auto-fit"]) {
+    grid-template-columns: 1fr 1fr !important;
+  }
   .waterfall { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 620px) {
-  .content > .grid > .grid, .content .grid[style*="1fr 1fr"], .content .grid[style*="320px"], .content .grid[style*="1.4fr"], .content .grid[style*="1.1fr"] { grid-template-columns: 1fr !important; }
-  .card[style*="gridTemplateColumns"], .card[style*="1.1fr 1fr"] { grid-template-columns: 1fr !important; }
+  /* На телефоне всё колоночное — в одну колонку (и в контенте, и в модалках). */
+  .content [style*="grid-template-columns"]:not([style*="auto-fill"]):not([style*="auto-fit"]),
+  .sheet   [style*="grid-template-columns"]:not([style*="auto-fill"]):not([style*="auto-fit"]) {
+    grid-template-columns: 1fr !important;
+  }
+  .waterfall { grid-template-columns: 1fr; }
   .stat-val { font-size: 22px; }
+
+  /* Сегментированные фильтры не распирают страницу — скроллятся внутри себя. */
+  .seg { min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .seg::-webkit-scrollbar { display: none; }
+
+  /* Дашборд: правый столбец hero при вертикальном стеке — граница сверху,
+     а не сбоку (иначе торчит вертикальная линия слева). */
+  .hero-bars { border-left: none !important; border-top: 1px solid var(--line); }
+  /* Донат + легенда (flex-ряд, не сетка) — на телефоне вертикально. */
+  .donut-row { flex-direction: column; align-items: stretch; gap: 16px; }
+  .donut-row > :first-child { align-self: center; }
+
+  /* Модалка никогда не шире экрана. */
+  .scrim { padding: 14px; }
+  .sheet { max-width: min(520px, calc(100vw - 28px)); }
+  .sheet-wide { max-width: min(720px, calc(100vw - 28px)); }
 }
