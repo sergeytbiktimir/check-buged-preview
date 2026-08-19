@@ -131,6 +131,15 @@ body {
   font-family: var(--font-num);
   font-feature-settings: "tnum" 1;
   letter-spacing: -0.01em;
+  /* Разделитель разрядов из toLocaleString("ru-RU") — U+00A0, а шрифт цифр
+     моноширинный: пробел занимает целую знакоместную ячейку, и «116 879»
+     читается как два числа. word-spacing бьёт ровно по словоразделителям
+     (U+0020 и U+00A0 — CSS Text 3, §8.1), то есть по разрыву между группами,
+     не трогая цифры; letter-spacing так не умеет. Ячейка в моношрифте — 0.6em,
+     значит −0.3em оставляет полразряда: группы видны, но число одно.
+     Величина в em, поэтому правка не зависит от того, загрузился ли
+     IBM Plex Mono или подставился системный ui-monospace. */
+  word-spacing: -0.3em;
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -337,6 +346,12 @@ input, select { font-family: inherit; }
 }
 .seg button.active { background: var(--surface); color: var(--ink); box-shadow: var(--sh-1); }
 
+/* Управление карточки ИИ-анализа: сегменты периода, детализация и кнопка запуска.
+   На десктопе группа прижата вправо, на узком экране переносится на свою строку
+   целиком и выравнивается по левому краю — auto-отступ там оставлял бы пустую
+   дыру слева от сегментов. */
+.ai-ctl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-left: auto; }
+
 .dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
 
 /* ---- buttons ---- */
@@ -354,6 +369,9 @@ input, select { font-family: inherit; }
 .btn-sm { padding: 6px 12px; font-size: 13px; }
 
 /* ---- progress / bar ---- */
+/* Столбец подпериода, которого нет на оси времени: кликать некуда, и приглушение
+   отличает «данных нет» от «расход равен нулю». */
+.bar-col.bar-off { opacity: .45; }
 .bar-track { height: 8px; background: var(--surface-2); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
 .bar-fill { height: 100%; border-radius: 999px; transition: width .5s cubic-bezier(.2,.8,.2,1); }
 
@@ -373,6 +391,35 @@ input, select { font-family: inherit; }
 .row-sub { font-size: 12.5px; color: var(--ink-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row-amt { margin-left: auto; font-weight: 600; font-size: 14.5px; text-align: right; flex-shrink: 0; }
 .sl-actions { display: flex; align-items: center; gap: 14px; }
+/* Строка шаблона регулярной операции. Намеренно НЕ .row: список шаблонов — это не
+   операции месяца, и запросы по .row не должны их подхватывать. */
+.rc-tpl {
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 6px;
+  border-bottom: 1px solid var(--line);
+}
+.rc-tpl > div { min-width: 0; }
+.rc-tpl:last-child { border-bottom: none; }
+.rc-tpl-over { opacity: .55; }
+/* Строки справочников. Тоже намеренно НЕ .row: справочник — это не операции
+   месяца, и запросы по .row не должны подхватывать его строки. */
+.ref-store, .ref-good {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 6px;
+  border-bottom: 1px solid var(--line);
+}
+.ref-store > div, .ref-good > div { min-width: 0; }
+.ref-store:last-child, .ref-good:last-child { border-bottom: none; }
+/* Суть, выросшая из чеков и встреченная один раз: её и правит пользователь. */
+.ref-good-raw .ref-name { color: var(--ink-2); }
+.ref-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ref-sub { font-size: 12.5px; color: var(--ink-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ref-pick {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 9px 11px; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface); margin-bottom: 6px;
+}
+.ref-pick:hover { border-color: var(--brand); background: var(--brand-soft); }
 
 /* ---- modal / sheet ---- */
 .scrim {
@@ -400,6 +447,32 @@ input, select { font-family: inherit; }
   display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;
   background: var(--surface);
 }
+/* Полноэкранная форма (телефон и планшет в портрете). Классы вешает сам Modal
+   по matchMedia, а не медиазапрос: облик обязан совпадать с тем, что компонент
+   считает узким экраном — от этого зависят кнопка «Назад» и запись в истории. */
+.scrim.scrim-full {
+  padding: 0; background: var(--bg); backdrop-filter: none;
+  display: block; overflow: hidden;
+}
+.sheet.sheet-full, .sheet.sheet-wide.sheet-full {
+  max-width: 100%; width: 100%;
+  height: 100dvh; max-height: 100dvh;
+  border: none; border-radius: 0; box-shadow: none;
+  padding-top: env(safe-area-inset-top);
+  animation: sheetSlideIn .22s cubic-bezier(.2, .9, .3, 1);
+}
+.sheet-full .sheet-h { padding: 14px 16px; }
+.sheet-full .sheet-body { padding: 18px 16px; }
+.sheet-full .sheet-foot { padding: 14px 16px max(14px, env(safe-area-inset-bottom)); }
+.sheet-full .sheet-back { flex: 0 0 auto; }
+/* Внутренние прокручиваемые коробки в полноэкранной форме не нужны: тело формы
+   прокручивается само на всю высоту экрана, а вложенный скролл на 280px посреди
+   пустого экрана — ровно та теснота, ради которой этап и затевался.
+   Ограничение снимается только там, где оно задано вместе с прокруткой. */
+.sheet-full .sheet-body [style*="max-height"][style*="overflow"] { max-height: none !important; }
+/* Появление — вдвижение справа: это переход на экран, а не всплытие окна. */
+@keyframes sheetSlideIn { from { transform: translateX(16px); opacity: .4; } to { transform: none; opacity: 1; } }
+
 .icon-btn {
   width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--line);
   background: var(--surface); display: grid; place-items: center; color: var(--ink-2);
@@ -433,7 +506,11 @@ input, select { font-family: inherit; }
 @media (prefers-reduced-motion: no-preference) {
   .scrim { animation: fade .18s ease; }
   .sheet { animation: pop .22s cubic-bezier(.2,.9,.3,1.2); }
-  .stagger > * { animation: riseIn .45s cubic-bezier(.2,.8,.2,1) both; }
+  /* Затемнение исключено намеренно: форма рендерится внутри сетки экрана, то есть
+     формально является её карточкой, и получала входную анимацию карточки поверх
+     собственной. Полсекунды форма ехала вниз до 10px — снизу просвечивал экран
+     под ней. Появление формы описано в .scrim/.sheet и в .sheet-full. */
+  .stagger > *:not(.scrim) { animation: riseIn .45s cubic-bezier(.2,.8,.2,1) both; }
   .stagger > *:nth-child(1) { animation-delay: .02s; }
   .stagger > *:nth-child(2) { animation-delay: .06s; }
   .stagger > *:nth-child(3) { animation-delay: .10s; }
@@ -540,6 +617,42 @@ input, select { font-family: inherit; }
   .waterfall { grid-template-columns: 1fr 1fr; }
 }
 
+/* Столбчатая диаграмма на телефоне прокручивается внутри карточки: год из
+   двенадцати месяцев в 375px не помещается, и последние столбцы срезались.
+   !important — колонки получают flex инлайн-стилем из charts.jsx. */
+@media (max-width: 767.98px) {
+  .bars-wrap { overflow-x: auto; overscroll-behavior-x: contain; }
+  .bars { min-width: 100%; }
+  .bars .bar-col { flex: 0 0 auto !important; min-width: 42px; }
+}
+
+/* Список покупок на телефоне: панель в один ряд, липкая сводка, своя прокрутка.
+   Порог 768px — тот же, что у полноэкранных форм. */
+@media (max-width: 767.98px) {
+  .sl-bar { align-items: center; }
+  .sl-bar .sl-finish, .sl-bar .sl-more { flex: 0 0 auto; padding: 0 10px; }
+  .sl-bar .btn-primary { flex: 1 1 auto; min-width: 0; justify-content: center; }
+  /* Меню скрытых действий: скрим ловит клик мимо, само меню — над ним. */
+  .sl-menu-scrim { position: fixed; inset: 0; z-index: 20; }
+  .sl-menu {
+    position: absolute; right: 0; top: calc(100% + 6px); z-index: 21;
+    display: flex; flex-direction: column; gap: 6px; padding: 8px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--r-md); box-shadow: 0 8px 28px rgba(0, 0, 0, .18);
+    min-width: 190px;
+  }
+  .sl-menu .btn { justify-content: flex-start; }
+
+  /* Сводка остаётся на виду: на неё смотрят, отмечая товары в магазине. */
+  .sl-head { position: sticky; top: 0; z-index: 10; }
+
+  /* Прокручивается список, а не страница. dvh, а не vh: адресная строка меняет
+     высоту вьюпорта, и на vh низ списка оказывается срезан. Запасное правило на
+     vh — для браузеров без dvh: срезанный низ лучше сломанной вёрстки. */
+  .sl-items { max-height: calc(100vh - var(--sl-chrome, 300px)); overflow-y: auto; overscroll-behavior: contain; }
+  .sl-items { max-height: calc(100dvh - var(--sl-chrome, 300px)); }
+}
+
 @media (max-width: 620px) {
   /* На телефоне всё колоночное — в одну колонку (и в контенте, и в модалках). */
   .content [style*="grid-template-columns"]:not([style*="auto-fill"]):not([style*="auto-fit"]),
@@ -555,10 +668,18 @@ input, select { font-family: inherit; }
 
   /* Сегментированные фильтры не распирают страницу — скроллятся внутри себя,
      со snap и затуханием у правого края как подсказкой прокрутки. */
+  .ai-ctl { margin-left: 0; width: 100%; }
   .seg {
     min-width: 0; max-width: 100%;
     overflow-x: auto; scrollbar-width: none;
     scroll-snap-type: x proximity;
+  }
+  /* Затухание — это подсказка «ряд можно листать», поэтому оно вешается ТОЛЬКО
+     на ряды, которые действительно не помещаются. Класс ставит App, измеряя
+     scrollWidth против clientWidth. Раньше маска стояла на всех .seg без разбора
+     и гасила последнюю метку там, где листать нечего: «Год» в «Аналитике» и в
+     карточке ИИ читался как обрезанный или отключённый. */
+  .seg.seg-scroll {
     -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
     mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
   }
@@ -574,16 +695,8 @@ input, select { font-family: inherit; }
   .donut-row { flex-direction: column; align-items: stretch; gap: 16px; }
   .donut-row > :first-child { align-self: center; }
 
-  /* Модалка на телефоне — шторка снизу (bottom-sheet). */
-  .scrim { place-items: end stretch; padding: 0; }
-  .sheet, .sheet-wide {
-    max-width: 100%; width: 100%;
-    max-height: 90dvh;
-    border-radius: var(--r-xl) var(--r-xl) 0 0;
-    border-bottom: none;
-    animation: sheetUp .24s cubic-bezier(.2, .9, .3, 1.2);
-  }
-  .sheet-foot { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  /* Шторка снизу заменена полноэкранной формой (см. .sheet-full ниже):
+     ниже 768px Modal рендерит «экран вместо экрана», а не окно поверх него. */
 
   /* Пикер магазина на телефоне — шторка снизу (портал в body). Инлайн-стилей
      на портал-варианте нет, поэтому оформление задаём целиком здесь. */
