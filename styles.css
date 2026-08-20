@@ -141,6 +141,13 @@ body {
      IBM Plex Mono или подставился системный ui-monospace. */
   word-spacing: -0.3em;
 }
+/* Потомки перечислены отдельно не для красоты: word-spacing разрешает em по
+   кеглю ТОГО элемента, где объявлен, и наследуется уже абсолютной величиной.
+   На «Чеках» внутри .num кегля 28px лежит подпись «чеков · 53 880 ₽» кеглем 15px:
+   она получала −8.4px вместо −4.5px, разряды слипались вплотную (−0.03 знакоместа
+   вместо 0.47) и сумма читалась как перечёркнутая. Повторное объявление заставляет
+   каждый вложенный элемент пересчитать em по своему кеглю. */
+.num * { word-spacing: -0.3em; }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; border: 3px solid var(--bg); }
@@ -389,7 +396,35 @@ input, select { font-family: inherit; }
 }
 .row-title { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row-sub { font-size: 12.5px; color: var(--ink-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.row-amt { margin-left: auto; font-weight: 600; font-size: 14.5px; text-align: right; flex-shrink: 0; }
+/* ---- строка «Истории цен по товарам» ---- */
+/* На широком экране всё в один ряд, как было. На телефоне ряд переносится:
+   товар с иконкой занимает первую строку целиком, цифры уходят на вторую.
+   Иначе названию доставалось 81px из нужных 137 и товар было не узнать. */
+.pt-row { display: flex; align-items: center; gap: 14px; padding: 11px 0; }
+.pt-main { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1 1 180px; }
+.pt-figs { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.pt-prices { font-size: 12.5px; width: 110px; text-align: right; }
+.pt-change {
+  font-weight: 700; font-size: 13.5px; width: 62px; text-align: right;
+  display: inline-flex; align-items: center; justify-content: flex-end; gap: 3px;
+}
+@media (max-width: 767.98px) {
+  .pt-row { flex-wrap: wrap; gap: 8px 14px; }
+  .pt-main { flex: 1 1 100%; }
+  /* Цифры прижаты к правому краю и выровнены по колонкам между строками:
+     ширины у пары цен и процента фиксированные, поэтому столбцы не пляшут.
+     Отступа слева под иконку здесь нет намеренно: спарклайн 88 + цены 110 +
+     процент 62 + зазоры 28 = 288 при 297 доступных, и любой отступ выдавил бы
+     ряд за padding карточки — ужаться ему не даёт min-content. */
+  .pt-figs { flex: 1 1 100%; justify-content: flex-end; }
+}
+
+.row-amt { margin-left: auto; font-weight: 600; font-size: 14.5px; text-align: right; flex-shrink: 0;
+  /* Сумму нельзя рвать между числом и знаком рубля: на 375px колонка ужимается
+     до ширины числа, и «₽» уезжал на вторую строку — строка чека становилась
+     вдвое выше соседних. Разрыв возможен потому, что часть мест собирает сумму
+     вручную из money(..., {bare:true}) и обычного пробела перед «₽». */
+  white-space: nowrap; }
 .sl-actions { display: flex; align-items: center; gap: 14px; }
 /* Строка шаблона регулярной операции. Намеренно НЕ .row: список шаблонов — это не
    операции месяца, и запросы по .row не должны их подхватывать. */
