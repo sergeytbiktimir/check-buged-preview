@@ -396,6 +396,33 @@ input, select { font-family: inherit; }
 }
 .row-title { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row-sub { font-size: 12.5px; color: var(--ink-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* ---- шапка карточки копилки ---- */
+/* Плашка типа («сбережение»/«вложение») занимает 97px и на телефоне съедала
+   название: заголовку доставалось 100px из нужных 177. На узком экране колонка
+   с названием забирает строку целиком, плашка переносится под неё и встаёт под
+   текстом — отступ равен иконке с зазором (40 + 11). */
+.goal-tag { margin-left: auto; }
+@media (max-width: 767.98px) {
+  .goal-head { flex-wrap: wrap; }
+  /* Ровно «строка минус иконка с зазором»: иконка и название остаются на одной
+     строке, а плашка не помещается и переносится. При базисе 100% на первой
+     строке оставалась одна иконка — заголовок уезжал третьим этажом. */
+  .goal-title-col { flex: 1 1 calc(100% - 51px) !important; }
+  .goal-tag { margin-left: 51px; }
+}
+
+/* ---- строка операции ---- */
+/* Та же задача, что у истории цен: на телефоне название операции — единственный
+   её опознавательный знак, а в один ряд ему доставалось 116px из нужных 153.
+   Сверху операция с иконкой, снизу сумма и кнопки. */
+.op-main { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1 1 auto; }
+.op-figs { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+@media (max-width: 767.98px) {
+  .op-row { flex-wrap: wrap; gap: 6px 14px; }
+  .op-main { flex: 1 1 100%; }
+  .op-figs { flex: 1 1 100%; justify-content: flex-end; }
+}
+
 /* ---- строка «Истории цен по товарам» ---- */
 /* На широком экране всё в один ряд, как было. На телефоне ряд переносится:
    товар с иконкой занимает первую строку целиком, цифры уходят на вторую.
