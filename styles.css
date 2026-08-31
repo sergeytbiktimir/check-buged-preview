@@ -41,6 +41,8 @@
   --c-clothes:    #D169A8;
   --c-fun:        #E0B33C;
   --c-tech:       #43A8B8;
+  --c-alcohol:    #A8465E;
+  --c-tobacco:    #7A6A55;
   --c-other:      #9AA0A4;
 
   /* Geometry */
@@ -99,6 +101,8 @@
   --c-clothes:    #DD7EBA;
   --c-fun:        #ECC257;
   --c-tech:       #5BBDCC;
+  --c-alcohol:    #C05873;
+  --c-tobacco:    #94836B;
   --c-other:      #9AA0A4;
 
   --sh-1: 0 1px 2px rgba(0,0,0,0.3);
