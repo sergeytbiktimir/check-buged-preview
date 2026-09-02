@@ -427,6 +427,35 @@ input, select { font-family: inherit; }
   .op-figs { flex: 1 1 100%; justify-content: flex-end; }
 }
 
+/* ---- сворачивающаяся шапка списка чеков ---- */
+/* Прокрутка вниз убирает карточку загрузки и фильтры, вверх — возвращает.
+   Сворачивание сделано отрицательным margin-top на измеренную высоту блока
+   (--head-h ставит хук useCollapsingHead): список поднимается ровно на неё, без
+   скачка. Прозрачность и лёгкий сдвиг вверх дают направление движения — блок
+   уходит, а не гаснет на месте. */
+.rcp-head {
+  display: grid;
+  gap: var(--gap);
+  transition: margin-top .3s cubic-bezier(.4, 0, .2, 1),
+              opacity .18s ease-out,
+              transform .3s cubic-bezier(.4, 0, .2, 1),
+              visibility 0s linear .3s;
+  will-change: margin-top, transform;
+}
+.rcp-head.is-collapsed {
+  margin-top: calc(-1 * var(--head-h, 0px));
+  transform: translateY(-8px);
+  opacity: 0;
+  visibility: hidden;          /* убирает поля из порядка обхода, пока блок скрыт */
+  pointer-events: none;
+  transition-delay: 0s;
+}
+/* Движение — украшение, а не смысл: тем, кто его отключил, блок просто
+   появляется и исчезает. */
+@media (prefers-reduced-motion: reduce) {
+  .rcp-head { transition: none; }
+}
+
 /* ---- строка чека в списке ---- */
 /* Подпись чека несёт три факта: дату со временем, число позиций и номер ФД —
    ей нужно 250px, а в один ряд с суммой и плашкой категории доставалось 68–116.
