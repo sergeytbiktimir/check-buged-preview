@@ -1,4 +1,4 @@
-const CACHE = 'chek-budget-pwa-7a859b5b';
+const CACHE = 'chek-budget-pwa-098754c3';
 const LOCAL = [
   './', 'index.html', 'styles.css', 'app.bundle.js',
   'react.development.js', 'react-dom.development.js',
