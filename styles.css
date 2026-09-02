@@ -427,33 +427,17 @@ input, select { font-family: inherit; }
   .op-figs { flex: 1 1 100%; justify-content: flex-end; }
 }
 
-/* ---- сворачивающаяся шапка списка чеков ---- */
-/* Прокрутка вниз убирает карточку загрузки и фильтры, вверх — возвращает.
-   Сворачивание сделано отрицательным margin-top на измеренную высоту блока
-   (--head-h ставит хук useCollapsingHead): список поднимается ровно на неё, без
-   скачка. Прозрачность и лёгкий сдвиг вверх дают направление движения — блок
-   уходит, а не гаснет на месте. */
-.rcp-head {
-  display: grid;
-  gap: var(--gap);
-  transition: margin-top .3s cubic-bezier(.4, 0, .2, 1),
-              opacity .18s ease-out,
-              transform .3s cubic-bezier(.4, 0, .2, 1),
-              visibility 0s linear .3s;
-  will-change: margin-top, transform;
-}
-.rcp-head.is-collapsed {
-  margin-top: calc(-1 * var(--head-h, 0px));
-  transform: translateY(-8px);
-  opacity: 0;
-  visibility: hidden;          /* убирает поля из порядка обхода, пока блок скрыт */
-  pointer-events: none;
-  transition-delay: 0s;
-}
-/* Движение — украшение, а не смысл: тем, кто его отключил, блок просто
-   появляется и исчезает. */
-@media (prefers-reduced-motion: reduce) {
-  .rcp-head { transition: none; }
+/* ---- строки «Типы категории» и «Доходы по категориям» ---- */
+/* Та же задача, что у операций и истории цен: в один ряд с суммой, процентом и
+   стрелкой названию оставалось 79px из нужных 99 («Аренда жилья») и 115 из 160
+   («Подработка и фриланс»). На телефоне ряд переносится: название с полосой
+   занимает первую строку целиком, цифры уходят на вторую. */
+.tf-main { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto; }
+.tf-figs { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-left: auto; }
+@media (max-width: 767.98px) {
+  .tf-row { flex-wrap: wrap; gap: 4px 12px; }
+  .tf-main { flex: 1 1 100%; }
+  .tf-figs { flex: 1 1 100%; justify-content: flex-end; }
 }
 
 /* ---- строка чека в списке ---- */
