@@ -440,6 +440,27 @@ input, select { font-family: inherit; }
   .tf-figs { flex: 1 1 100%; justify-content: flex-end; }
 }
 
+/* ---- ряд плашек-фильтров в модалке ---- */
+/* Ряд из 18 чипов в две-три строки занимал 290px из 812 на телефоне — треть
+   экрана, — и кнопка добавления своего товара уезжала ниже середины. Ряд
+   становится однострочным с горизонтальной прокруткой, тем же приёмом, что
+   сегментированные переключатели. Затухание у правого края — подсказка «можно
+   листать», поэтому оно вешается ТОЛЬКО на переполненные ряды: класс ставит
+   наблюдатель в app.jsx. Безусловная маска гасила бы последнюю плашку там, где
+   листать нечего — этот дефект в приложении уже чинили. */
+.chip-row {
+  min-width: 0; max-width: 100%;
+  overflow-x: auto; scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  flex-wrap: nowrap;
+}
+.chip-row::-webkit-scrollbar { display: none; }
+.chip-row > * { scroll-snap-align: start; flex: 0 0 auto; }
+.chip-row.seg-scroll {
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+}
+
 /* ---- строка чека в списке ---- */
 /* Подпись чека несёт три факта: дату со временем, число позиций и номер ФД —
    ей нужно 250px, а в один ряд с суммой и плашкой категории доставалось 68–116.
