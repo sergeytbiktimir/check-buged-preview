@@ -860,3 +860,38 @@ input, select { font-family: inherit; }
   }
   .sl-picker .sl-picker-list { max-height: calc(70dvh - 60px); }
 }
+
+/* ---- Выбор периода в топбаре ---- */
+/* Селектор — кнопки ВНУТРИ .month-pick, а у того есть общее правило
+   `.month-pick button { width: 30px; height: 30px }` для стрелок (styles.css:294).
+   Оно бьёт по всему поддереву, поэтому подпись и клетки месяцев обязаны сбросить
+   размер явно: без этого «сентябрь 2026» ужимается в 30 px и обрезается. */
+.month-pick .mp-btn { display: inline-flex; align-items: center; gap: 5px; background: none;
+  border: 0; color: inherit; font: inherit; cursor: pointer; padding: 0;
+  width: auto; height: auto; border-radius: 0; }
+.month-pick .mp-btn:hover { background: none; }
+.pp-backdrop { position: fixed; inset: 0; z-index: 40; }
+.pp-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 41; padding: 10px;
+  width: max-content; max-width: min(300px, calc(100vw - 24px)); box-shadow: var(--shadow-2, 0 8px 28px rgba(0,0,0,.18)); }
+.pp-year { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.pp-year span { font-weight: 700; font-size: 15px; }
+.pp-year button { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--r-sm);
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-1); cursor: pointer; }
+.pp-year button:disabled { opacity: .3; cursor: default; }
+/* minmax, а не 1fr: при width:max-content у панели доля 1fr схлопывает клетку
+   до 28px при нужных тексту 31px, и метка обрезается на пару пикселей — заметно
+   именно на телефоне, где панель и так узкая. */
+.pp-months { display: grid; grid-template-columns: repeat(4, minmax(48px, 1fr)); gap: 5px; }
+.pp-weeks { display: grid; grid-template-columns: repeat(3, minmax(64px, 1fr)); gap: 5px; margin-top: 8px;
+  padding-top: 8px; border-top: 1px solid var(--line); }
+.pp-months button, .pp-weeks button { padding: 7px 6px; border-radius: var(--r-sm); border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink-1); font-size: 12.5px; cursor: pointer; white-space: nowrap;
+  width: auto; height: auto; display: block; text-align: center; }
+.pp-months button:disabled, .pp-weeks button:disabled { opacity: .32; cursor: default; }
+.pp-months button.active, .pp-weeks button.active { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
+/* Архивный месяц (до начала учёта) — точка под меткой: пометка нужна ПРИ выборе,
+   иначе пользователь уходит в период без баланса вслепую. */
+.pp-months button.arch { position: relative; }
+.pp-months button.arch::after { content: ""; position: absolute; left: 50%; bottom: 3px;
+  transform: translateX(-50%); width: 4px; height: 4px; border-radius: 99px; background: var(--ink-3); }
+.pp-months button.arch.active::after { background: rgba(255,255,255,.75); }
